@@ -5,9 +5,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
-# http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
+# https://www.apache.org/licenses/LICENSE-2.0
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,9 +43,9 @@ module Avro
       end
 
       def byte!
-        @reader.read(1).unpack('C').first
+        @reader.readbyte
       end
-      
+
       def read_null
         # null is written as zero byte's
         nil
@@ -76,7 +76,7 @@ module Avro
         # The float is converted into a 32-bit integer using a method
         # equivalent to Java's floatToIntBits and then encoded in
         # little-endian format.
-        @reader.read(4).unpack('e')[0]
+        read_and_unpack(4, 'e'.freeze)
       end
 
       def read_double
@@ -84,7 +84,7 @@ module Avro
         # The double is converted into a 64-bit integer using a method
         # equivalent to Java's doubleToLongBits and then encoded in
         # little-endian format.
-        @reader.read(8).unpack('E')[0]
+        read_and_unpack(8, 'E'.freeze)
       end
 
       def read_bytes
@@ -97,7 +97,7 @@ module Avro
         # A string is encoded as a long followed by that many bytes of
         # UTF-8 encoded character data.
         read_bytes.tap do |string|
-          string.force_encoding("UTF-8") if string.respond_to? :force_encoding
+          string.force_encoding('UTF-8'.freeze) if string.respond_to? :force_encoding
         end
       end
 
@@ -144,6 +144,23 @@ module Avro
       def skip(n)
         reader.seek(reader.tell() + n)
       end
+
+      private
+
+      # Optimize unpacking strings when `unpack1` is available (ruby >= 2.4)
+      if String.instance_methods.include?(:unpack1)
+
+        def read_and_unpack(byte_count, format)
+          @reader.read(byte_count).unpack1(format)
+        end
+
+      else
+
+        def read_and_unpack(byte_count, format)
+          @reader.read(byte_count).unpack(format)[0]
+        end
+
+      end
     end
 
     # Write leaf values
@@ -155,11 +172,11 @@ module Avro
       end
 
       # null is written as zero bytes
-      def write_null(datum)
+      def write_null(_datum)
         nil
       end
 
-      # a boolean is written as a single byte 
+      # a boolean is written as a single byte
       # whose value is either 0 (false) or 1 (true).
       def write_boolean(datum)
         on_disk = datum ? 1.chr : 0.chr
@@ -175,7 +192,6 @@ module Avro
       # int and long values are written using variable-length,
       # zig-zag coding.
       def write_long(n)
-        foo = n
         n = (n << 1) ^ (n >> 63)
         while (n & ~0x7F) != 0
           @writer.write(((n & 0x7f) | 0x80).chr)
@@ -189,7 +205,7 @@ module Avro
       # equivalent to Java's floatToIntBits and then encoded in
       # little-endian format.
       def write_float(datum)
-        @writer.write([datum].pack('e'))
+        @writer.write([datum].pack('e'.freeze))
       end
 
       # A double is written as 8 bytes.
@@ -197,7 +213,7 @@ module Avro
       # equivalent to Java's doubleToLongBits and then encoded in
       # little-endian format.
       def write_double(datum)
-        @writer.write([datum].pack('E'))
+        @writer.write([datum].pack('E'.freeze))
       end
 
       # Bytes are encoded as a long followed by that many bytes of data.
@@ -209,7 +225,7 @@ module Avro
       # A string is encoded as a long followed by that many bytes of
       # UTF-8 encoded character data
       def write_string(datum)
-        datum = datum.encode('utf-8') if datum.respond_to? :encode
+        datum = datum.encode('utf-8'.freeze) if datum.respond_to? :encode
         write_bytes(datum)
       end
 
@@ -254,7 +270,7 @@ module Avro
 
         # function dispatch for reading data based on type of writer's
         # schema
-        case writers_schema.type_sym
+        datum = case writers_schema.type_sym
         when :null;    decoder.read_null
         when :boolean; decoder.read_boolean
         when :string;  decoder.read_string
@@ -272,9 +288,11 @@ module Avro
         else
           raise AvroError, "Cannot read unknown schema type: #{writers_schema.type}"
         end
+
+        readers_schema.type_adapter.decode(datum)
       end
 
-      def read_fixed(writers_schema, readers_schema, decoder)
+      def read_fixed(writers_schema, _readers_schema, decoder)
         decoder.read(writers_schema.size)
       end
 
@@ -282,12 +300,12 @@ module Avro
         index_of_symbol = decoder.read_int
         read_symbol = writers_schema.symbols[index_of_symbol]
 
-        # TODO(jmhodges): figure out what unset means for resolution
-        # schema resolution
-        unless readers_schema.symbols.include?(read_symbol)
-          # 'unset' here
+        if !readers_schema.symbols.include?(read_symbol) && readers_schema.default
+          read_symbol = readers_schema.default
         end
 
+        # This implementation deviates from the spec by always returning
+        # a symbol.
         read_symbol
       end
 
@@ -297,7 +315,7 @@ module Avro
         while block_count != 0
           if block_count < 0
             block_count = -block_count
-            block_size = decoder.read_long
+            _block_size = decoder.read_long
           end
           block_count.times do
             read_items << read_data(writers_schema.items,
@@ -316,7 +334,7 @@ module Avro
         while block_count != 0
           if block_count < 0
             block_count = -block_count
-            block_size = decoder.read_long
+            _block_size = decoder.read_long
           end
           block_count.times do
             key = decoder.read_string
@@ -341,26 +359,28 @@ module Avro
         readers_fields_hash = readers_schema.fields_hash
         read_record = {}
         writers_schema.fields.each do |field|
-          if readers_field = readers_fields_hash[field.name]
+          readers_field = readers_fields_hash[field.name]
+          if readers_field
             field_val = read_data(field.type, readers_field.type, decoder)
             read_record[field.name] = field_val
+          elsif readers_schema.fields_by_alias.key?(field.name)
+            readers_field = readers_schema.fields_by_alias[field.name]
+            field_val = read_data(field.type, readers_field.type, decoder)
+            read_record[readers_field.name] = field_val
           else
             skip_data(field.type, decoder)
           end
         end
 
         # fill in the default values
-        if readers_fields_hash.size > read_record.size
-          writers_fields_hash = writers_schema.fields_hash
-          readers_fields_hash.each do |field_name, field|
-            unless writers_fields_hash.has_key? field_name
-              if field.default?
-                field_val = read_default_value(field.type, field.default)
-                read_record[field.name] = field_val
-              else
-                raise AvroError, "Missing data for #{field.type} with no default"
-              end
-            end
+        readers_fields_hash.each do |field_name, field|
+          next if read_record.key?(field_name)
+
+          if field.default?
+            field_val = read_default_value(field.type, field.default)
+            read_record[field.name] = field_val
+          else
+            raise AvroError, "Missing data for #{field.type} with no default"
           end
         end
 
@@ -450,7 +470,7 @@ module Avro
         decoder.skip(writers_schema.size)
       end
 
-      def skip_enum(writers_schema, decoder)
+      def skip_enum(_writers_schema, decoder)
         decoder.skip_int
       end
 
@@ -481,7 +501,7 @@ module Avro
           if block_count < 0
             decoder.skip(decoder.read_long)
           else
-            block_count.times &blk
+            block_count.times(&blk)
           end
           block_count = decoder.read_long
         end
@@ -499,8 +519,10 @@ module Avro
         write_data(writers_schema, datum, encoder)
       end
 
-      def write_data(writers_schema, datum, encoder)
-        unless Schema.validate(writers_schema, datum)
+      def write_data(writers_schema, logical_datum, encoder)
+        datum = writers_schema.type_adapter.encode(logical_datum)
+
+        unless Schema.validate(writers_schema, datum, { recursive: false, encoded: true })
           raise AvroTypeError.new(writers_schema, datum)
         end
 
@@ -525,7 +547,7 @@ module Avro
         end
       end
 
-      def write_fixed(writers_schema, datum, encoder)
+      def write_fixed(_writers_schema, datum, encoder)
         encoder.write(datum)
       end
 
@@ -535,6 +557,7 @@ module Avro
       end
 
       def write_array(writers_schema, datum, encoder)
+        raise AvroTypeError.new(writers_schema, datum) unless datum.is_a?(Array)
         if datum.size > 0
           encoder.write_long(datum.size)
           datum.each do |item|
@@ -545,6 +568,7 @@ module Avro
       end
 
       def write_map(writers_schema, datum, encoder)
+        raise AvroTypeError.new(writers_schema, datum) unless datum.is_a?(Hash)
         if datum.size > 0
           encoder.write_long(datum.size)
           datum.each do |k,v|
@@ -567,8 +591,9 @@ module Avro
       end
 
       def write_record(writers_schema, datum, encoder)
+        raise AvroTypeError.new(writers_schema, datum) unless datum.is_a?(Hash)
         writers_schema.fields.each do |field|
-          write_data(field.type, datum[field.name], encoder)
+          write_data(field.type, datum.key?(field.name) ? datum[field.name] : datum[field.name.to_sym], encoder)
         end
       end
     end # DatumWriter

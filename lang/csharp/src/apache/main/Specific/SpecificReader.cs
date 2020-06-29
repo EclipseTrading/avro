@@ -1,4 +1,4 @@
-﻿/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,6 +58,11 @@ namespace Avro.Specific
             reader = new SpecificDefaultReader(writerSchema, readerSchema);
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SpecificReader{T}"/> class using an
+        /// existing <see cref="SpecificDefaultReader"/>.
+        /// </summary>
+        /// <param name="reader">Default reader to use.</param>
         public SpecificReader(SpecificDefaultReader reader)
         {
             this.reader = reader;
@@ -80,12 +85,6 @@ namespace Avro.Specific
     /// </summary>
     public class SpecificDefaultReader : DefaultReader
     {
-        /// <summary>
-        /// Static dictionary of type names and its corresponding assembly type.
-        /// This is used to prevent multiple reflection for the same type name.
-        /// </summary>
-        private static IDictionary<string, Type> TypeName = new Dictionary<string, Type>();
-
         /// <summary>
         /// Constructor
         /// </summary>
@@ -127,7 +126,7 @@ namespace Avro.Specific
                 }
                 catch (Exception ex)
                 {
-                    throw new AvroException(ex.Message + " in field " + wf.Name);
+                    throw new AvroException(ex.Message + " in field " + wf.Name, ex);
                 }
             }
 
@@ -259,8 +258,7 @@ namespace Avro.Specific
         /// Gets the target type name in the given schema
         /// </summary>
         /// <param name="schema">schema containing the type to be determined</param>
-        /// <param name="nullible">used for union schema</param>
-        /// <returns></returns>
+        /// <returns>Name of the type</returns>
         protected virtual string getTargetType(Schema schema)
         {
             bool nEnum = false;
