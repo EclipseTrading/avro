@@ -49,6 +49,9 @@ void printRecord(testgen::RootRecord &record)
     std::cout << "inval1 " << record.nestedrecord.inval1 << '\n';
     std::cout << "inval2 " << record.nestedrecord.inval2 << '\n';
     std::cout << "inval3 " << record.nestedrecord.inval3 << '\n';
+    std::cout << "inval4 " << record.nestedrecord.inval4 << '\n';
+    std::cout << "inval5 " << record.nestedrecord.inval5 << '\n';
+    std::cout << "inval6 " << record.nestedrecord.inval6 << '\n';
 
     Map_of_int::MapType::const_iterator mapiter = record.mymap.value.begin();
     while(mapiter != record.mymap.value.end()){
@@ -86,6 +89,9 @@ void printRecord(testgen::RootRecord &record)
     std::cout << "inval1 " << record.anothernested.inval1 << '\n';
     std::cout << "inval2 " << record.anothernested.inval2 << '\n';
     std::cout << "inval3 " << record.anothernested.inval3 << '\n';
+    std::cout << "inval4 " << record.anothernested.inval4 << '\n';
+    std::cout << "inval5 " << record.anothernested.inval5 << '\n';
+    std::cout << "inval6 " << record.anothernested.inval6 << '\n';
 
     std::cout << "fixed ";
     for(size_t i = 0; i < record.myfixed.fixedSize; ++i) {
@@ -109,6 +115,9 @@ void printRecord(testgen2::RootRecord &record)
     std::cout << "inval1 " << record.nestedrecord.inval1 << '\n';
     std::cout << "inval2 " << record.nestedrecord.inval2 << '\n';
     std::cout << "inval3 " << record.nestedrecord.inval3 << '\n';
+    std::cout << "inval4 " << record.nestedrecord.inval4 << '\n';
+    std::cout << "inval5 " << record.nestedrecord.inval5 << '\n';
+    std::cout << "inval6 " << record.nestedrecord.inval6 << '\n';
 
     Map_of_long::MapType::const_iterator mapiter = record.mymap.value.begin();
     while(mapiter != record.mymap.value.end()){
@@ -143,6 +152,9 @@ void printRecord(testgen2::RootRecord &record)
     std::cout << "inval1 " << record.anothernested.inval1 << '\n';
     std::cout << "inval2 " << record.anothernested.inval2 << '\n';
     std::cout << "inval3 " << record.anothernested.inval3 << '\n';
+    std::cout << "inval4 " << record.anothernested.inval4 << '\n';
+    std::cout << "inval5 " << record.anothernested.inval5 << '\n';
+    std::cout << "inval6 " << record.anothernested.inval6 << '\n';
 
     if(record.myfixed.choice == 1) {
         const md5 &myfixed = record.myfixed.getValue<md5>();
@@ -263,6 +275,9 @@ struct TestCodeGenerator {
         BOOST_CHECK_EQUAL(rec1.inval1, rec2.inval1);
         BOOST_CHECK_EQUAL(rec1.inval2, rec2.inval2);
         BOOST_CHECK_EQUAL(rec1.inval3, rec2.inval3);
+        BOOST_CHECK_EQUAL(rec1.inval4, rec2.inval4);
+        BOOST_CHECK_EQUAL(rec1.inval5, rec2.inval5);
+        BOOST_CHECK_EQUAL(rec1.inval6, rec2.inval6);
     }
 
     void checkOk(const testgen::RootRecord &rec1, const testgen::RootRecord &rec2)
@@ -429,6 +444,9 @@ struct TestSchemaResolving {
         BOOST_CHECK_EQUAL(rec1.inval1, rec2.inval1);
         BOOST_CHECK_EQUAL(rec1.inval2, rec2.inval2);
         BOOST_CHECK_EQUAL(rec1.inval3, rec2.inval3);
+        BOOST_CHECK_EQUAL(rec1.inval4, rec2.inval4);
+        BOOST_CHECK_EQUAL(rec1.inval5, rec2.inval5);
+        BOOST_CHECK_EQUAL(rec1.inval6, rec2.inval6);
     }
 
     void checkOk(const testgen::RootRecord &rec1, const testgen2::RootRecord &rec2)

@@ -109,6 +109,10 @@ public:
         return **boost::any_cast<std::shared_ptr<Object> >(&value_);
     }
 
+    bool isStringValue(const std::string &value) const {
+        return type_ == etString && stringValue() == value;
+    }
+
     std::string toString() const;
 };
 

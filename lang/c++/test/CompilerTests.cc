@@ -85,6 +85,112 @@ void test2dArray()
 
 }
 
+void testDoubleDefaultValues()
+{
+    std::string input = "{\n\
+    \"type\": \"record\",\n\
+    \"name\": \"testrecord\",\n\
+    \"fields\": [\n\
+        {\n\
+            \"name\": \"val1\",\n\
+            \"type\": \"double\"\n\
+        },\n\
+        {\n\
+            \"name\": \"val2\",\n\
+            \"type\": \"double\",\n\
+            \"default\": 0\n\
+        },\n\
+        {\n\
+            \"name\": \"val3\",\n\
+            \"type\": \"double\",\n\
+            \"default\": 12.3\n\
+        },\n\
+        {\n\
+            \"name\": \"val4\",\n\
+            \"type\": \"double\",\n\
+            \"default\": \"NaN\"\n\
+        },\n\
+        {\n\
+            \"name\": \"val5\",\n\
+            \"type\": \"double\",\n\
+            \"default\": \"Infinity\"\n\
+        },\n\
+        {\n\
+            \"name\": \"val6\",\n\
+            \"type\": \"double\",\n\
+            \"default\": \"-Infinity\"\n\
+        }\n\
+    ]\n\
+}\n\
+";
+    std::string expected = "{\n\
+    \"type\": \"record\",\n\
+    \"name\": \"testrecord\",\n\
+    \"fields\": [\n\
+        {\n\
+            \"name\": \"val1\",\n\
+            \"type\": \"double\"\n\
+        },\n\
+        {\n\
+            \"name\": \"val2\",\n\
+            \"type\": \"double\",\n\
+            \"default\": 0\n\
+        },\n\
+        {\n\
+            \"name\": \"val3\",\n\
+            \"type\": \"double\",\n\
+            \"default\": 12.3\n\
+        },\n\
+        {\n\
+            \"name\": \"val4\",\n\
+            \"type\": \"double\",\n\
+            \"default\": \"NaN\"\n\
+        },\n\
+        {\n\
+            \"name\": \"val5\",\n\
+            \"type\": \"double\",\n\
+            \"default\": \"Infinity\"\n\
+        },\n\
+        {\n\
+            \"name\": \"val6\",\n\
+            \"type\": \"double\",\n\
+            \"default\": \"-Infinity\"\n\
+        }\n\
+    ]\n\
+}\n\
+";
+
+    avro::ValidSchema schema = avro::compileJsonSchemaFromString(input);
+    std::ostringstream actual;
+    schema.toJson(actual);
+    BOOST_CHECK_EQUAL(expected, actual.str());
+
+    auto &root = *schema.root();
+    std::ostringstream out;
+    root.leafAt(0)->printDefaultToJson(root.defaultValueAt(0), out, 0);
+    BOOST_CHECK_EQUAL(out.str(), "null");
+
+    out.str("");
+    root.leafAt(1)->printDefaultToJson(root.defaultValueAt(1), out, 1);
+    BOOST_CHECK_EQUAL(out.str(), "0");
+
+    out.str("");
+    root.leafAt(2)->printDefaultToJson(root.defaultValueAt(2), out, 2);
+    BOOST_CHECK_EQUAL(out.str(), "12.3");
+
+    out.str("");
+    root.leafAt(3)->printDefaultToJson(root.defaultValueAt(3), out, 3);
+    BOOST_CHECK_EQUAL(out.str(), "\"NaN\"");
+
+    out.str("");
+    root.leafAt(4)->printDefaultToJson(root.defaultValueAt(4), out, 4);
+    BOOST_CHECK_EQUAL(out.str(), "\"Infinity\"");
+
+    out.str("");
+    root.leafAt(5)->printDefaultToJson(root.defaultValueAt(5), out, 5);
+    BOOST_CHECK_EQUAL(out.str(), "\"-Infinity\"");
+}
+
 boost::unit_test::test_suite*
 init_unit_test_suite(int argc, char* argv[])
 {
@@ -93,5 +199,6 @@ init_unit_test_suite(int argc, char* argv[])
     test_suite* ts= BOOST_TEST_SUITE("Avro C++ unit tests for Compiler.cc");
     ts->add(BOOST_TEST_CASE(&testEmptyBytesDefault));
     ts->add(BOOST_TEST_CASE(&test2dArray));
+    ts->add(BOOST_TEST_CASE(&testDoubleDefaultValues));
     return ts;
 }

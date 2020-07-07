@@ -218,12 +218,24 @@ static GenericDatum makeGenericDatum(NodePtr n,
     case AVRO_FLOAT:
         if (dt == json::etLong) {
             return GenericDatum(static_cast<float>(e.longValue()));
+        } else if (e.isStringValue("NaN")) {
+            return GenericDatum(std::numeric_limits<float>::quiet_NaN());
+        } else if (e.isStringValue("Infinity")) {
+            return GenericDatum(std::numeric_limits<float>::infinity());
+        } else if (e.isStringValue("-Infinity")) {
+            return GenericDatum(-std::numeric_limits<float>::infinity());
         }
         assertType(e, json::etDouble);
         return GenericDatum(static_cast<float>(e.doubleValue()));
     case AVRO_DOUBLE:
         if (dt == json::etLong) {
             return GenericDatum(static_cast<double>(e.longValue()));
+        } else if (e.isStringValue("NaN")) {
+            return GenericDatum(std::numeric_limits<double>::quiet_NaN());
+        } else if (e.isStringValue("Infinity")) {
+            return GenericDatum(std::numeric_limits<double>::infinity());
+        } else if (e.isStringValue("-Infinity")) {
+            return GenericDatum(-std::numeric_limits<double>::infinity());
         }
         assertType(e, json::etDouble);
         return GenericDatum(e.doubleValue());
