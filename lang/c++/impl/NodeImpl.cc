@@ -20,6 +20,7 @@
 #include <sstream>
 #include <iomanip>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 #include "NodeImpl.hh"
 
 
@@ -318,11 +319,33 @@ void NodePrimitive::printDefaultToJson(const GenericDatum &g, std::ostream &os,
       os << g.value<int64_t>();
       break;
     case AVRO_FLOAT:
-      os << g.value<float>();
-      break;
+      {
+          auto val = g.value<float>();
+          if (boost::math::isnan(val)) {
+              os << "\"NaN\"";
+          } else if (val == std::numeric_limits<float>::infinity()) {
+              os << "\"Infinity\"";
+          } else if (val == -std::numeric_limits<float>::infinity()) {
+              os << "\"-Infinity\"";
+          } else {
+              os << val;
+          }
+          break;
+      }
     case AVRO_DOUBLE:
-      os << g.value<double>();
-      break;
+      {
+          auto val = g.value<double>();
+          if (boost::math::isnan(val)) {
+              os << "\"NaN\"";
+          } else if (val == std::numeric_limits<double>::infinity()) {
+              os << "\"Infinity\"";
+          } else if (val == -std::numeric_limits<double>::infinity()) {
+              os << "\"-Infinity\"";
+          } else {
+              os << val;
+          }
+          break;
+      }
     case AVRO_STRING:
       os << "\"" << escape(g.value<string>()) << "\"";
       break;

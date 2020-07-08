@@ -25,6 +25,21 @@
                     {
                         "name": "inval3",
                         "type": "int"
+                    },
+                    {
+                        "name": "inval4",
+                        "type": "double",
+                        "default": "NaN"
+                    },
+                    {
+                        "name": "inval5",
+                        "type": "double",
+                        "default": "Infinity"
+                    },
+                    {
+                        "name": "inval6",
+                        "type": "double",
+                        "default": "-Infinity"
                     }
                 ]
             }

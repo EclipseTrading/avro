@@ -109,6 +109,9 @@ void checkRecord(const T1& r1, const T2& r2)
     BOOST_CHECK_EQUAL(r1.nestedrecord.inval1, r2.nestedrecord.inval1);
     BOOST_CHECK_EQUAL(r1.nestedrecord.inval2, r2.nestedrecord.inval2);
     BOOST_CHECK_EQUAL(r1.nestedrecord.inval3, r2.nestedrecord.inval3);
+    BOOST_CHECK_EQUAL(r1.nestedrecord.inval4, r2.nestedrecord.inval4);
+    BOOST_CHECK_EQUAL(r1.nestedrecord.inval5, r2.nestedrecord.inval5);
+    BOOST_CHECK_EQUAL(r1.nestedrecord.inval6, r2.nestedrecord.inval6);
     BOOST_CHECK(r1.mymap == r2.mymap);
     BOOST_CHECK(r1.myarray == r2.myarray);
     BOOST_CHECK_EQUAL(r1.myunion.idx(), r2.myunion.idx());
@@ -119,6 +122,9 @@ void checkRecord(const T1& r1, const T2& r2)
     BOOST_CHECK_EQUAL(r1.anothernested.inval1, r2.anothernested.inval1);
     BOOST_CHECK_EQUAL(r1.anothernested.inval2, r2.anothernested.inval2);
     BOOST_CHECK_EQUAL(r1.anothernested.inval3, r2.anothernested.inval3);
+    BOOST_CHECK_EQUAL(r1.anothernested.inval4, r2.anothernested.inval4);
+    BOOST_CHECK_EQUAL(r1.anothernested.inval5, r2.anothernested.inval5);
+    BOOST_CHECK_EQUAL(r1.anothernested.inval6, r2.anothernested.inval6);
     BOOST_CHECK_EQUAL_COLLECTIONS(r1.myfixed.begin(), r1.myfixed.end(),
         r2.myfixed.begin(), r2.myfixed.end());
     BOOST_CHECK_EQUAL(r1.anotherint, r2.anotherint);

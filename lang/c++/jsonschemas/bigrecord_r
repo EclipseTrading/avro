@@ -30,6 +30,18 @@
                     {
                         "name": "inval3",
                         "type": "int"
+                    },
+                    {
+                        "name": "inval4",
+                        "type": "double"
+                    },
+                    {
+                        "name": "inval5",
+                        "type": "double"
+                    },
+                    {
+                        "name": "inval6",
+                        "type": "double"
                     }
                 ]
             }
@@ -151,7 +163,10 @@
                 "rwd_f1": {
                     "inval2": "hello",
                     "inval1": 4.23,
-                    "inval3": 100
+                    "inval3": 100,
+                    "inval4": "NaN",
+                    "inval5": "Infinity",
+                    "inval6": "-Infinity"
                 }
             }
         },
